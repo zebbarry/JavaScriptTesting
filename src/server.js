@@ -2,7 +2,8 @@ const express = require('express');
 const { readFile, writeFile } = require('fs').promises;
 
 const app = express();
-const count_file_path = './count.txt';
+const count_file_path = (process.env.SHARED_DIR || 'lib') + '/count.txt';
+const html_path = 'src/index.html';
 const port = process.env.PORT || 3000;
 let view_count = 0;
 
@@ -22,9 +23,9 @@ app.get('/', async (request, response) => {
     await incrementViewCount()
         .then(() => { console.log(`Request received! #${view_count}`) });
 
-    await readFile('./index.html', 'utf-8')
+    await readFile(html_path, 'utf-8')
         .then((html) => {
-            response.send(html.replace(`id="count">0<`,`id="count">${view_count}<`));
+            response.send(html.replace('id="count">0<',`id="count">${view_count}<`));
         }).catch(() => {
             console.error('Something went wrong?');
             response.status(500).send("This wasn't meant to happen?!");
