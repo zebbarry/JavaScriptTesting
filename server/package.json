@@ -24,5 +24,6 @@
   "directories": {
     "lib": "lib"
   },
+  "devDependencies": {},
   "description": ""
 }
