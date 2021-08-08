@@ -20,10 +20,41 @@ app.set('port', port);
  */
 
 const server = http.createServer(app);
+const update_server = require('http').createServer();
+const io = require('socket.io')(update_server, {
+    cors: { origin: '*'}
+});
+
 
 /**
  * Listen on provided port, on all network interfaces.
  */
+const { loadCount, writeCount } = require('../public/javascripts/count-tracker');
+
+const view_count_file = 'public/lib/view-count.txt';
+let view_count = 0;
+loadCount(view_count_file).then(recorded_count => {
+  view_count += recorded_count;
+  console.log(view_count);
+});
+ 
+ 
+let connect_count = 0;
+io.on('connection', socket => {
+  connect_count++;
+  view_count++;
+  writeCount(view_count_file, view_count);
+  console.log('New Connection!');
+  console.log({view_count, connect_count});
+  io.emit('update', {views: view_count, connections: connect_count});
+  socket.on('disconnect', socket => {
+    connect_count--;
+    console.log('Connection lost...');
+    console.log({view_count, connect_count})
+    io.emit('update', {views: view_count, connections: connect_count});
+  });
+});
+update_server.listen(8080, () => console.log(`App available on http://localhost:${8080}`));
 
 server.on('error', onError);
 server.on('listening', onListening);
